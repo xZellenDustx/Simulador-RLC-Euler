@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador RLC Funcional</title>
+    <title>Simulador RLC con Método de Euler</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@11.6.0"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
@@ -97,10 +97,73 @@
             color: #2e7d32;
             border: 1px solid #a5d6a7;
         }
+        .simulation-params {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 5px;
+        }
+        .results-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            border-left: 4px solid #4285f4;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .result-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .result-value {
+            font-weight: bold;
+            color: #4285f4;
+            font-size: 1.1em;
+        }
+        .result-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .value-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .value-table th, .value-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .value-table th {
+            background-color: #f2f2f2;
+        }
+        .value-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .section-title {
+            margin-top: 25px;
+            color: #4285f4;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .method-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #2e7d32;
+        }
     </style>
 </head>
 <body>
-    <h1>Visualizador de Respuesta Natural RLC</h1>
+    <h1>Simulador Avanzado de Circuitos RLC con Método de Euler</h1>
     
     <div class="tabs">
         <div class="tab active" id="tab-serie">Circuito Serie</div>
@@ -130,8 +193,49 @@
                 <label>Corriente inicial (A):</label>
                 <input type="number" id="I0_serie" value="0" step="0.1">
             </div>
-            <button id="btn-serie">Calcular Respuesta Serie</button>
+            
+            <div class="simulation-params">
+                <h3>Parámetros de Simulación</h3>
+                <div>
+                    <label>Tiempo final (s):</label>
+                    <input type="number" id="tmax_serie" value="0.5" step="0.1" min="0.01">
+                </div>
+                <div>
+                    <label>Paso de tiempo (s):</label>
+                    <input type="number" id="dt_serie" value="0.0001" step="0.00001" min="0.000001">
+                </div>
+            </div>
+            
+            <button id="btn-serie">Simular Circuito Serie</button>
             <div id="status-serie" class="status"></div>
+            
+            <div id="results-serie" class="results-panel" style="display: none;">
+                <h3>Resultados de la Simulación</h3>
+                <div class="results-grid" id="circuit-params-serie"></div>
+                
+                <h4 class="section-title">Valores en Puntos Clave</h4>
+                <table class="value-table" id="key-values-serie">
+                    <thead>
+                        <tr>
+                            <th>Tiempo (s)</th>
+                            <th>Voltaje (V)</th>
+                            <th>Corriente (A)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                
+                <div class="method-info">
+                    <h4>Información del Método Numérico</h4>
+                    <p>Esta simulación utiliza el <strong>Método de Euler</strong> para resolver las ecuaciones diferenciales del circuito.</p>
+                    <p><strong>Fórmulas implementadas:</strong></p>
+                    <ul>
+                        <li>dVc/dt = Il/C</li>
+                        <li>dIl/dt = (-Vc - R*Il)/L</li>
+                    </ul>
+                    <p>Precisión: Los resultados pueden variar según el paso de tiempo seleccionado. Valores más pequeños de Δt producen resultados más precisos pero requieren más cálculos.</p>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -158,19 +262,61 @@
                 <label>Corriente inicial (A):</label>
                 <input type="number" id="I0_paralelo" value="0" step="0.1">
             </div>
-            <button id="btn-paralelo">Calcular Respuesta Paralelo</button>
+            
+            <div class="simulation-params">
+                <h3>Parámetros de Simulación</h3>
+                <div>
+                    <label>Tiempo final (s):</label>
+                    <input type="number" id="tmax_paralelo" value="0.5" step="0.1" min="0.01">
+                </div>
+                <div>
+                    <label>Paso de tiempo (s):</label>
+                    <input type="number" id="dt_paralelo" value="0.0001" step="0.00001" min="0.000001">
+                </div>
+            </div>
+            
+            <button id="btn-paralelo">Simular Circuito Paralelo</button>
             <div id="status-paralelo" class="status"></div>
+            
+            <div id="results-paralelo" class="results-panel" style="display: none;">
+                <h3>Resultados de la Simulación</h3>
+                <div class="results-grid" id="circuit-params-paralelo"></div>
+                
+                <h4 class="section-title">Valores en Puntos Clave</h4>
+                <table class="value-table" id="key-values-paralelo">
+                    <thead>
+                        <tr>
+                            <th>Tiempo (s)</th>
+                            <th>Voltaje (V)</th>
+                            <th>Corriente (A)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                
+                <div class="method-info">
+                    <h4>Información del Método Numérico</h4>
+                    <p>Esta simulación utiliza el <strong>Método de Euler</strong> para resolver las ecuaciones diferenciales del circuito.</p>
+                    <p><strong>Fórmulas implementadas:</strong></p>
+                    <ul>
+                        <li>dVc/dt = Il/C - Vc/(R*C)</li>
+                        <li>dIl/dt = -Vc/L</li>
+                    </ul>
+                    <p>Precisión: Los resultados pueden variar según el paso de tiempo seleccionado. Valores más pequeños de Δt producen resultados más precisos pero requieren más cálculos.</p>
+                </div>
+            </div>
         </div>
     </div>
     
     <div class="graph-container">
-        <h2>Respuesta Natural del Circuito</h2>
+        <h2>Respuesta Temporal del Circuito</h2>
         <canvas id="responseChart"></canvas>
     </div>
 
     <script>
         // Variables globales
         let responseChart = null;
+        let currentSimulationData = null;
         
         // Función para mostrar mensajes de estado
         function showStatus(tab, message, isError = false) {
@@ -206,91 +352,227 @@
             });
         }
         
-        // Función para calcular la respuesta RLC
+        // Función para calcular parámetros característicos del circuito
+        function calcularParametrosCaracteristicos(R, L, C, tipo) {
+            const omega0 = 1 / Math.sqrt(L * C); // Frecuencia natural
+            let alpha, dampingRatio, dampingType;
+            
+            if (tipo === 'serie') {
+                alpha = R / (2 * L);
+            } else { // paralelo
+                alpha = 1 / (2 * R * C);
+            }
+            
+            const damping = alpha / omega0;
+            
+            if (alpha < omega0) {
+                dampingType = "Subamortiguado (oscilatorio)";
+                dampingRatio = damping;
+            } else if (alpha > omega0) {
+                dampingType = "Sobreamortiguado";
+                dampingRatio = damping;
+            } else {
+                dampingType = "Críticamente amortiguado";
+                dampingRatio = 1;
+            }
+            
+            return {
+                omega0,
+                alpha,
+                dampingRatio,
+                dampingType,
+                frecuenciaNatural: omega0 / (2 * Math.PI),
+                periodoNatural: 2 * Math.PI / omega0
+            };
+        }
+        
+        // Función para formatear números para mostrar
+        function formatNumber(num, decimals = 4) {
+            return num.toFixed(decimals).replace(/\.?0+$/, '');
+        }
+        
+        // Función para mostrar los parámetros del circuito y resultados
+        function mostrarResultados(tipo, R, L, C, V0, I0, params, timeData, voltageData, currentData) {
+            const prefix = tipo;
+            const resultsPanel = document.getElementById(`results-${prefix}`);
+            const paramsContainer = document.getElementById(`circuit-params-${prefix}`);
+            const tableBody = document.querySelector(`#key-values-${prefix} tbody`);
+            
+            // Mostrar el panel de resultados
+            resultsPanel.style.display = 'block';
+            
+            // Calcular valores estadísticos
+            const maxVoltage = Math.max(...voltageData);
+            const minVoltage = Math.min(...voltageData);
+            const maxCurrent = Math.max(...currentData);
+            const minCurrent = Math.min(...currentData);
+            
+            // Mostrar parámetros del circuito y características
+            paramsContainer.innerHTML = `
+                <div class="result-item">
+                    <div class="result-label">Resistencia (R)</div>
+                    <div class="result-value">${formatNumber(R)} Ω</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Inductancia (L)</div>
+                    <div class="result-value">${formatNumber(L)} H</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Capacitancia (C)</div>
+                    <div class="result-value">${formatNumber(C)} F</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Frecuencia natural (ω₀)</div>
+                    <div class="result-value">${formatNumber(params.omega0)} rad/s</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Frecuencia natural (f₀)</div>
+                    <div class="result-value">${formatNumber(params.frecuenciaNatural)} Hz</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Factor de amortiguamiento (α)</div>
+                    <div class="result-value">${formatNumber(params.alpha)}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Relación de amortiguamiento (ζ)</div>
+                    <div class="result-value">${formatNumber(params.dampingRatio)}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Tipo de respuesta</div>
+                    <div class="result-value">${params.dampingType}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Voltaje máximo</div>
+                    <div class="result-value">${formatNumber(maxVoltage)} V</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Corriente máxima</div>
+                    <div class="result-value">${formatNumber(maxCurrent)} A</div>
+                </div>
+            `;
+            
+            // Mostrar valores clave en la tabla
+            tableBody.innerHTML = '';
+            
+            // Seleccionar puntos clave para mostrar (inicio, picos, final)
+            const keyIndices = [];
+            const step = Math.floor(timeData.length / 10); // Mostrar ~10 puntos
+            
+            for (let i = 0; i < timeData.length; i += step) {
+                keyIndices.push(i);
+            }
+            
+            // Asegurarse de incluir el último punto
+            if (keyIndices[keyIndices.length - 1] !== timeData.length - 1) {
+                keyIndices.push(timeData.length - 1);
+            }
+            
+            // Llenar la tabla con los valores seleccionados
+            keyIndices.forEach(index => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatNumber(timeData[index], 6)}</td>
+                    <td>${formatNumber(voltageData[index], 4)}</td>
+                    <td>${formatNumber(currentData[index], 4)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Función para calcular la respuesta RLC usando el método de Euler
         function calcularRespuesta(tipo) {
             const prefix = tipo;
             
+            // Obtener parámetros del circuito
             const R = parseFloat(document.getElementById(`R_${prefix}`).value);
             const L = parseFloat(document.getElementById(`L_${prefix}`).value);
             const C = parseFloat(document.getElementById(`C_${prefix}`).value);
             const V0 = parseFloat(document.getElementById(`V0_${prefix}`).value);
             const I0 = parseFloat(document.getElementById(`I0_${prefix}`).value);
             
+            // Obtener parámetros de simulación
+            const tMax = parseFloat(document.getElementById(`tmax_${prefix}`).value);
+            const dt = parseFloat(document.getElementById(`dt_${prefix}`).value);
+            
             // Validación exhaustiva de valores
-            if (isNaN(R) || isNaN(L) || isNaN(C) || isNaN(V0) || isNaN(I0)) {
+            if (isNaN(R) || isNaN(L) || isNaN(C) || isNaN(V0) || isNaN(I0) || isNaN(tMax) || isNaN(dt)) {
                 showStatus(prefix, "Error: Todos los campos deben ser números válidos", true);
                 return;
             }
             
-            if (R <= 0 || L <= 0 || C <= 0) {
-                showStatus(prefix, "Error: R, L y C deben ser valores positivos", true);
+            if (R <= 0 || L <= 0 || C <= 0 || tMax <= 0 || dt <= 0) {
+                showStatus(prefix, "Error: R, L, C, tmax y dt deben ser valores positivos", true);
+                return;
+            }
+            
+            if (dt >= tMax) {
+                showStatus(prefix, "Error: El paso de tiempo debe ser menor que el tiempo final", true);
                 return;
             }
             
             try {
-                let alpha, omega0;
+                // Calcular parámetros característicos
+                const params = calcularParametrosCaracteristicos(R, L, C, tipo);
                 
-                if (tipo === 'serie') {
-                    alpha = R / (2 * L);
-                    omega0 = 1 / Math.sqrt(L * C);
-                } else { // paralelo
-                    alpha = 1 / (2 * R * C);
-                    omega0 = 1 / Math.sqrt(L * C);
-                }
+                // Calcular usando el método de Euler
+                const { timeData, voltageData, currentData } = resolverConEuler(R, L, C, V0, I0, tMax, dt, tipo);
                 
-                const { timeData, voltageData, currentData } = generarDatosRLC(alpha, omega0, V0, I0, tipo, C);
+                // Guardar datos para posible exportación
+                currentSimulationData = {
+                    timeData, voltageData, currentData, params,
+                    circuitParams: { R, L, C, V0, I0 },
+                    simulationParams: { tMax, dt }
+                };
                 
+                // Mostrar resultados y gráfico
+                mostrarResultados(tipo, R, L, C, V0, I0, params, timeData, voltageData, currentData);
                 mostrarGrafico(timeData, voltageData, currentData, tipo);
-                showStatus(prefix, "Cálculo completado correctamente");
+                
+                showStatus(prefix, `Simulación completada con ${timeData.length} puntos. Tipo: ${params.dampingType}`);
             } catch (error) {
-                showStatus(prefix, `Error en el cálculo: ${error.message}`, true);
+                showStatus(prefix, `Error en la simulación: ${error.message}`, true);
                 console.error("Error en calcularRespuesta:", error);
             }
         }
         
-        // Función para generar datos de la respuesta RLC
-        function generarDatosRLC(alpha, omega0, V0, I0, tipo, C) {
+        // Función que implementa el método de Euler para resolver el circuito RLC
+        function resolverConEuler(R, L, C, V0, I0, tMax, dt, tipo) {
             const timeData = [];
             const voltageData = [];
             const currentData = [];
             
-            const damping = alpha / omega0;
-            const omegaD = Math.sqrt(Math.abs(omega0**2 - alpha**2));
+            // Condiciones iniciales
+            let t = 0;
+            let Vc = V0;
+            let Il = I0;
             
-            // Configurar el rango de tiempo dinámicamente
-            const tMax = damping < 1 ? 10 * Math.PI / omegaD : 5 / alpha;
-            const numPoints = 1000;
+            // Número de pasos
+            const numSteps = Math.ceil(tMax / dt);
             
-            for (let i = 0; i <= numPoints; i++) {
-                const t = (i / numPoints) * tMax;
+            // Para circuito serie: dVc/dt = Il/C, dIl/dt = (-Vc - R*Il)/L
+            // Para circuito paralelo: dVc/dt = Il/C - Vc/(R*C), dIl/dt = -Vc/L
+            
+            for (let i = 0; i <= numSteps; i++) {
+                // Guardar los valores actuales
                 timeData.push(t);
-                
-                let Vc, Il;
-                
-                if (alpha < omega0) { // Subamortiguado
-                    const A = V0;
-                    const B = (I0 / C + alpha * V0) / omegaD;
-                    Vc = Math.exp(-alpha * t) * (A * Math.cos(omegaD * t) + B * Math.sin(omegaD * t));
-                    Il = -C * Math.exp(-alpha * t) * (
-                        alpha*(A*Math.cos(omegaD*t) + B*Math.sin(omegaD*t)) + 
-                        omegaD*(-A*Math.sin(omegaD*t) + B*Math.cos(omegaD*t))
-                    );
-                } else if (alpha > omega0) { // Sobreamortiguado
-                    const s1 = -alpha + Math.sqrt(alpha**2 - omega0**2);
-                    const s2 = -alpha - Math.sqrt(alpha**2 - omega0**2);
-                    const A = (V0 * s2 - I0 / C) / (s2 - s1);
-                    const B = (I0 / C - V0 * s1) / (s2 - s1);
-                    Vc = A * Math.exp(s1 * t) + B * Math.exp(s2 * t);
-                    Il = C * (A * s1 * Math.exp(s1 * t) + B * s2 * Math.exp(s2 * t));
-                } else { // Críticamente amortiguado
-                    const A = V0;
-                    const B = I0 / C + alpha * V0;
-                    Vc = (A + B * t) * Math.exp(-alpha * t);
-                    Il = C * (B * Math.exp(-alpha * t) - alpha * (A + B * t) * Math.exp(-alpha * t));
-                }
-                
                 voltageData.push(Vc);
                 currentData.push(Il);
+                
+                // Calcular las derivadas según el tipo de circuito
+                let dVc_dt, dIl_dt;
+                
+                if (tipo === 'serie') {
+                    dVc_dt = Il / C;
+                    dIl_dt = (-Vc - R * Il) / L;
+                } else { // paralelo
+                    dVc_dt = Il / C - Vc / (R * C);
+                    dIl_dt = -Vc / L;
+                }
+                
+                // Aplicar el método de Euler
+                Vc = Vc + dVc_dt * dt;
+                Il = Il + dIl_dt * dt;
+                t = t + dt;
             }
             
             return { timeData, voltageData, currentData };
@@ -373,6 +655,23 @@
                             max: maxCurrent * 1.1,
                             grid: {
                                 drawOnChartArea: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(4);
+                                        label += context.datasetIndex === 0 ? ' V' : ' A';
+                                    }
+                                    return label;
+                                }
                             }
                         }
                     }
