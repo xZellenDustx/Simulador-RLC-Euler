@@ -3,313 +3,669 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador RLC con Método de Euler</title>
+    <title>Simulador Avanzado de Circuitos RLC con Método de Euler</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@11.6.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
+            color: var(--dark-color);
+            background-color: #f5f7fa;
         }
-        .circuit-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+        
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
             margin-bottom: 30px;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
-        .circuit-params {
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 8px;
-            flex: 1;
-            min-width: 300px;
-            background: #f9f9f9;
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .graph-container {
-            margin-top: 30px;
-            width: 100%;
-            height: 500px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 10px;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
         }
-        input {
-            width: 120px;
-            padding: 8px;
-            margin: 6px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        
+        .logo i {
+            font-size: 2rem;
         }
-        button {
-            padding: 10px 20px;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 15px;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #3367d6;
-        }
+        
         .tabs {
             display: flex;
             margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 2px solid var(--primary-color);
+            overflow: hidden;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
         }
+        
         .tab {
             padding: 12px 24px;
             cursor: pointer;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
+            background-color: #e9ecef;
+            border: none;
+            margin-right: 2px;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
         }
+        
+        .tab:last-child {
+            margin-right: 0;
+        }
+        
+        .tab:hover {
+            background-color: #dee2e6;
+        }
+        
         .tab.active {
-            background-color: #4285f4;
+            background-color: var(--primary-color);
             color: white;
         }
-        h2 {
-            color: #4285f4;
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+        
+        .tab-content {
+            background-color: white;
+            border-radius: 0 var(--border-radius) var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .circuit-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .circuit-params {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .circuit-params h2 {
+            color: var(--primary-color);
             margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .status {
-            margin-top: 10px;
+        
+        .circuit-params h2 i {
+            color: var(--accent-color);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group label {
+            flex: 1;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .input-group input {
+            width: 120px;
             padding: 10px;
-            border-radius: 4px;
-            display: none;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
         }
+        
+        .input-group input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.25);
+        }
+        
+        .simulation-params {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .simulation-params h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn i {
+            font-size: 1rem;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            display: none;
+            font-weight: 500;
+        }
+        
         .error {
             background-color: #ffebee;
             color: #c62828;
-            border: 1px solid #ef9a9a;
+            border-left: 4px solid #ef9a9a;
         }
+        
         .success {
             background-color: #e8f5e9;
             color: #2e7d32;
-            border: 1px solid #a5d6a7;
+            border-left: 4px solid #a5d6a7;
         }
-        .simulation-params {
-            margin-top: 15px;
-            padding: 15px;
-            background: #f0f7ff;
-            border-radius: 5px;
-        }
+        
         .results-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 5px;
-            border-left: 4px solid #4285f4;
+            margin-top: 30px;
+            padding: 25px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-left: 4px solid var(--primary-color);
         }
+        
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
+        
         .result-item {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            transition: var(--transition);
         }
+        
+        .result-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
         .result-value {
-            font-weight: bold;
-            color: #4285f4;
-            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-top: 5px;
         }
+        
         .result-label {
-            font-size: 0.9em;
-            color: #666;
+            font-size: 0.9rem;
+            color: var(--gray-color);
         }
+        
         .value-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+        
         .value-table th, .value-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #e9ecef;
+            padding: 12px;
             text-align: left;
         }
+        
         .value-table th {
-            background-color: #f2f2f2;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
         }
+        
         .value-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f8f9fa;
         }
+        
+        .value-table tr:hover {
+            background-color: #e9ecef;
+        }
+        
         .section-title {
-            margin-top: 25px;
-            color: #4285f4;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+            margin-top: 30px;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        
         .method-info {
-            background: #e8f5e9;
-            padding: 15px;
-            border-radius: 5px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 25px;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .method-info h4 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+        
+        .graph-container {
+            margin-top: 30px;
+            width: 100%;
+            height: 500px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .circuit-diagram {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+        
+        .circuit-diagram img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
-            border-left: 4px solid #2e7d32;
+        }
+        
+        .export-btn {
+            padding: 8px 16px;
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .export-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .animate-btn {
+            padding: 8px 16px;
+            background-color: white;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .animate-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .circuit-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Simulador Avanzado de Circuitos RLC con Método de Euler</h1>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-bolt"></i>
+            <span>Simulador Avanzado de Circuitos RLC con Método de Euler</span>
+        </div>
+        <div class="tooltip">
+            <i class="fas fa-info-circle" style="color: var(--primary-color); font-size: 1.5rem;"></i>
+            <span class="tooltiptext">Simulador interactivo de circuitos RLC usando el método de Euler</span>
+        </div>
+    </div>
     
     <div class="tabs">
-        <div class="tab active" id="tab-serie">Circuito Serie</div>
-        <div class="tab" id="tab-paralelo">Circuito Paralelo</div>
+        <div class="tab active" id="tab-serie">
+            <i class="fas fa-project-diagram"></i> Circuito Serie
+        </div>
+        <div class="tab" id="tab-paralelo">
+            <i class="fas fa-sitemap"></i> Circuito Paralelo
+        </div>
     </div>
     
     <div id="serie-tab" class="tab-content">
-        <div class="circuit-params">
-            <h2>Circuito RLC Serie</h2>
-            <div>
-                <label>Resistencia (Ω):</label>
-                <input type="number" id="R_serie" value="100" step="1" min="0.1">
-            </div>
-            <div>
-                <label>Inductancia (H):</label>
-                <input type="number" id="L_serie" value="0.1" step="0.01" min="0.001">
-            </div>
-            <div>
-                <label>Capacitancia (F):</label>
-                <input type="number" id="C_serie" value="0.001" step="0.0001" min="0.000001">
-            </div>
-            <div>
-                <label>Voltaje inicial (V):</label>
-                <input type="number" id="V0_serie" value="10" step="1">
-            </div>
-            <div>
-                <label>Corriente inicial (A):</label>
-                <input type="number" id="I0_serie" value="0" step="0.1">
-            </div>
-            
-            <div class="simulation-params">
-                <h3>Parámetros de Simulación</h3>
-                <div>
-                    <label>Tiempo final (s):</label>
-                    <input type="number" id="tmax_serie" value="0.5" step="0.1" min="0.01">
+        <div class="circuit-container">
+            <div class="circuit-params">
+                <h2><i class="fas fa-cog"></i> Parámetros del Circuito</h2>
+                <div class="input-group">
+                    <label for="R_serie">Resistencia (Ω):</label>
+                    <input type="number" id="R_serie" value="100" step="1" min="0.1">
                 </div>
-                <div>
-                    <label>Paso de tiempo (s):</label>
-                    <input type="number" id="dt_serie" value="0.0001" step="0.00001" min="0.000001">
+                <div class="input-group">
+                    <label for="L_serie">Inductancia (H):</label>
+                    <input type="number" id="L_serie" value="0.1" step="0.01" min="0.001">
                 </div>
-            </div>
-            
-            <button id="btn-serie">Simular Circuito Serie</button>
-            <div id="status-serie" class="status"></div>
-            
-            <div id="results-serie" class="results-panel" style="display: none;">
-                <h3>Resultados de la Simulación</h3>
-                <div class="results-grid" id="circuit-params-serie"></div>
+                <div class="input-group">
+                    <label for="C_serie">Capacitancia (F):</label>
+                    <input type="number" id="C_serie" value="0.001" step="0.0001" min="0.000001">
+                </div>
+                <div class="input-group">
+                    <label for="V0_serie">Voltaje inicial (V):</label>
+                    <input type="number" id="V0_serie" value="10" step="1">
+                </div>
+                <div class="input-group">
+                    <label for="I0_serie">Corriente inicial (A):</label>
+                    <input type="number" id="I0_serie" value="0" step="0.1">
+                </div>
                 
-                <h4 class="section-title">Valores en Puntos Clave</h4>
-                <table class="value-table" id="key-values-serie">
-                    <thead>
-                        <tr>
-                            <th>Tiempo (s)</th>
-                            <th>Voltaje (V)</th>
-                            <th>Corriente (A)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                
-                <div class="method-info">
-                    <h4>Información del Método Numérico</h4>
-                    <p>Esta simulación utiliza el <strong>Método de Euler</strong> para resolver las ecuaciones diferenciales del circuito.</p>
-                    <p><strong>Fórmulas implementadas:</strong></p>
-                    <ul>
-                        <li>dVc/dt = Il/C</li>
-                        <li>dIl/dt = (-Vc - R*Il)/L</li>
-                    </ul>
-                    <p>Precisión: Los resultados pueden variar según el paso de tiempo seleccionado. Valores más pequeños de Δt producen resultados más precisos pero requieren más cálculos.</p>
+                <div class="simulation-params">
+                    <h3><i class="fas fa-sliders-h"></i> Parámetros de Simulación</h3>
+                    <div class="input-group">
+                        <label for="tmax_serie">Tiempo final (s):</label>
+                        <input type="number" id="tmax_serie" value="0.5" step="0.1" min="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="dt_serie">Paso de tiempo (s):</label>
+                        <input type="number" id="dt_serie" value="0.0001" step="0.00001" min="0.000001">
+                    </div>
                 </div>
+                
+                <button id="btn-serie" class="btn">
+                    <i class="fas fa-play"></i> Simular Circuito Serie
+                </button>
+                
+                <div class="animation-controls">
+                    <button id="animate-slower" class="animate-btn">
+                        <i class="fas fa-minus"></i> Más lento
+                    </button>
+                    <button id="animate-faster" class="animate-btn">
+                        <i class="fas fa-plus"></i> Más rápido
+                    </button>
+                    <button id="pause-btn" class="animate-btn">
+                        <i class="fas fa-pause"></i> Pausar
+                    </button>
+                </div>
+                
+                <div id="speed-indicator" style="margin-top: 10px; font-weight: bold;">Velocidad: 1.0x</div>
+                
+                <div id="status-serie" class="status"></div>
+                
+                <div class="export-buttons">
+                    <button id="export-data-serie" class="export-btn">
+                        <i class="fas fa-file-csv"></i> Exportar Datos
+                    </button>
+                    <button id="export-image-serie" class="export-btn">
+                        <i class="fas fa-image"></i> Exportar Gráfico
+                    </button>
+                </div>
+            </div>
+            
+            <div class="circuit-diagram">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/RLC_series_circuit_v1.svg/1478px-RLC_series_circuit_v1.svg.png" alt="Circuito RLC Serie" id="circuit-img-serie">
+            </div>
+        </div>
+        
+        <div id="results-serie" class="results-panel" style="display: none;">
+            <h3><i class="fas fa-chart-line"></i> Resultados de la Simulación</h3>
+            <div class="results-grid" id="circuit-params-serie"></div>
+            
+            <h4 class="section-title"><i class="fas fa-key"></i> Valores en Puntos Clave</h4>
+            <table class="value-table" id="key-values-serie">
+                <thead>
+                    <tr>
+                        <th>Tiempo (s)</th>
+                        <th>Voltaje (V)</th>
+                        <th>Corriente (A)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            
+            <div class="method-info">
+                <h4><i class="fas fa-info-circle"></i> Información del Método Numérico</h4>
+                <p>Esta simulación utiliza el <strong>Método de Euler</strong> para resolver las ecuaciones diferenciales del circuito.</p>
+                <p><strong>Fórmulas implementadas:</strong></p>
+                <ul>
+                    <li>dVc/dt = Il/C</li>
+                    <li>dIl/dt = (-Vc - R*Il)/L</li>
+                </ul>
+                <p>Precisión: Los resultados pueden variar según el paso de tiempo seleccionado. Valores más pequeños de Δt producen resultados más precisos pero requieren más cálculos.</p>
             </div>
         </div>
     </div>
     
     <div id="paralelo-tab" class="tab-content" style="display:none;">
-        <div class="circuit-params">
-            <h2>Circuito RLC Paralelo</h2>
-            <div>
-                <label>Resistencia (Ω):</label>
-                <input type="number" id="R_paralelo" value="100" step="1" min="0.1">
-            </div>
-            <div>
-                <label>Inductancia (H):</label>
-                <input type="number" id="L_paralelo" value="0.1" step="0.01" min="0.001">
-            </div>
-            <div>
-                <label>Capacitancia (F):</label>
-                <input type="number" id="C_paralelo" value="0.001" step="0.0001" min="0.000001">
-            </div>
-            <div>
-                <label>Voltaje inicial (V):</label>
-                <input type="number" id="V0_paralelo" value="10" step="1">
-            </div>
-            <div>
-                <label>Corriente inicial (A):</label>
-                <input type="number" id="I0_paralelo" value="0" step="0.1">
-            </div>
-            
-            <div class="simulation-params">
-                <h3>Parámetros de Simulación</h3>
-                <div>
-                    <label>Tiempo final (s):</label>
-                    <input type="number" id="tmax_paralelo" value="0.5" step="0.1" min="0.01">
+        <div class="circuit-container">
+            <div class="circuit-params">
+                <h2><i class="fas fa-cog"></i> Parámetros del Circuito</h2>
+                <div class="input-group">
+                    <label for="R_paralelo">Resistencia (Ω):</label>
+                    <input type="number" id="R_paralelo" value="100" step="1" min="0.1">
                 </div>
-                <div>
-                    <label>Paso de tiempo (s):</label>
-                    <input type="number" id="dt_paralelo" value="0.0001" step="0.00001" min="0.000001">
+                <div class="input-group">
+                    <label for="L_paralelo">Inductancia (H):</label>
+                    <input type="number" id="L_paralelo" value="0.1" step="0.01" min="0.001">
                 </div>
-            </div>
-            
-            <button id="btn-paralelo">Simular Circuito Paralelo</button>
-            <div id="status-paralelo" class="status"></div>
-            
-            <div id="results-paralelo" class="results-panel" style="display: none;">
-                <h3>Resultados de la Simulación</h3>
-                <div class="results-grid" id="circuit-params-paralelo"></div>
+                <div class="input-group">
+                    <label for="C_paralelo">Capacitancia (F):</label>
+                    <input type="number" id="C_paralelo" value="0.001" step="0.0001" min="0.000001">
+                </div>
+                <div class="input-group">
+                    <label for="V0_paralelo">Voltaje inicial (V):</label>
+                    <input type="number" id="V0_paralelo" value="10" step="1">
+                </div>
+                <div class="input-group">
+                    <label for="I0_paralelo">Corriente inicial (A):</label>
+                    <input type="number" id="I0_paralelo" value="0" step="0.1">
+                </div>
                 
-                <h4 class="section-title">Valores en Puntos Clave</h4>
-                <table class="value-table" id="key-values-paralelo">
-                    <thead>
-                        <tr>
-                            <th>Tiempo (s)</th>
-                            <th>Voltaje (V)</th>
-                            <th>Corriente (A)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                
-                <div class="method-info">
-                    <h4>Información del Método Numérico</h4>
-                    <p>Esta simulación utiliza el <strong>Método de Euler</strong> para resolver las ecuaciones diferenciales del circuito.</p>
-                    <p><strong>Fórmulas implementadas:</strong></p>
-                    <ul>
-                        <li>dVc/dt = Il/C - Vc/(R*C)</li>
-                        <li>dIl/dt = -Vc/L</li>
-                    </ul>
-                    <p>Precisión: Los resultados pueden variar según el paso de tiempo seleccionado. Valores más pequeños de Δt producen resultados más precisos pero requieren más cálculos.</p>
+                <div class="simulation-params">
+                    <h3><i class="fas fa-sliders-h"></i> Parámetros de Simulación</h3>
+                    <div class="input-group">
+                        <label for="tmax_paralelo">Tiempo final (s):</label>
+                        <input type="number" id="tmax_paralelo" value="0.5" step="0.1" min="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="dt_paralelo">Paso de tiempo (s):</label>
+                        <input type="number" id="dt_paralelo" value="0.0001" step="0.00001" min="0.000001">
+                    </div>
                 </div>
+                
+                <button id="btn-paralelo" class="btn">
+                    <i class="fas fa-play"></i> Simular Circuito Paralelo
+                </button>
+                
+                <div class="animation-controls">
+                    <button id="animate-slower-paralelo" class="animate-btn">
+                        <i class="fas fa-minus"></i> Más lento
+                    </button>
+                    <button id="animate-faster-paralelo" class="animate-btn">
+                        <i class="fas fa-plus"></i> Más rápido
+                    </button>
+                    <button id="pause-btn-paralelo" class="animate-btn">
+                        <i class="fas fa-pause"></i> Pausar
+                    </button>
+                </div>
+                
+                <div id="speed-indicator-paralelo" style="margin-top: 10px; font-weight: bold;">Velocidad: 1.0x</div>
+                
+                <div id="status-paralelo" class="status"></div>
+                
+                <div class="export-buttons">
+                    <button id="export-data-paralelo" class="export-btn">
+                        <i class="fas fa-file-csv"></i> Exportar Datos
+                    </button>
+                    <button id="export-image-paralelo" class="export-btn">
+                        <i class="fas fa-image"></i> Exportar Gráfico
+                    </button>
+                </div>
+            </div>
+            
+            <div class="circuit-diagram">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/RLC_parallel_circuit_v1.svg/1280px-RLC_parallel_circuit_v1.svg.png" alt="Circuito RLC Paralelo" id="circuit-img-paralelo">
+            </div>
+        </div>
+        
+        <div id="results-paralelo" class="results-panel" style="display: none;">
+            <h3><i class="fas fa-chart-line"></i> Resultados de la Simulación</h3>
+            <div class="results-grid" id="circuit-params-paralelo"></div>
+            
+            <h4 class="section-title"><i class="fas fa-key"></i> Valores en Puntos Clave</h4>
+            <table class="value-table" id="key-values-paralelo">
+                <thead>
+                    <tr>
+                        <th>Tiempo (s)</th>
+                        <th>Voltaje (V)</th>
+                        <th>Corriente (A)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            
+            <div class="method-info">
+                <h4><i class="fas fa-info-circle"></i> Información del Método Numérico</h4>
+                <p>Esta simulación utiliza el <strong>Método de Euler</strong> para resolver las ecuaciones diferenciales del circuito.</p>
+                <p><strong>Fórmulas implementadas:</strong></p>
+                <ul>
+                    <li>dVc/dt = Il/C - Vc/(R*C)</li>
+                    <li>dIl/dt = -Vc/L</li>
+                </ul>
+                <p>Precisión: Los resultados pueden variar según el paso de tiempo seleccionado. Valores más pequeños de Δt producen resultados más precisos pero requieren más cálculos.</p>
             </div>
         </div>
     </div>
     
     <div class="graph-container">
-        <h2>Respuesta Temporal del Circuito</h2>
+        <h2><i class="fas fa-chart-area"></i> Respuesta Temporal del Circuito</h2>
         <canvas id="responseChart"></canvas>
     </div>
 
@@ -317,6 +673,34 @@
         // Variables globales
         let responseChart = null;
         let currentSimulationData = null;
+        let animationSpeed = 1;
+        let animationFrameId = null;
+        let currentTime = 0;
+        let isPaused = false;
+        let lastUpdateTime = 0;
+        let animationData = {
+            timeData: [],
+            voltageData: [],
+            currentData: [],
+            tipo: '',
+            totalPoints: 0,
+            currentIndex: 0
+        };
+        
+        // Configuración de temas y colores
+        const chartColors = {
+            voltage: {
+                border: '#4361ee',
+                background: 'rgba(67, 97, 238, 0.1)'
+            },
+            current: {
+                border: '#f72585',
+                background: 'rgba(247, 37, 133, 0.1)'
+            },
+            grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+            }
+        };
         
         // Función para mostrar mensajes de estado
         function showStatus(tab, message, isError = false) {
@@ -382,12 +766,14 @@
                 dampingRatio,
                 dampingType,
                 frecuenciaNatural: omega0 / (2 * Math.PI),
-                periodoNatural: 2 * Math.PI / omega0
+                periodoNatural: 2 * Math.PI / omega0,
+                tau: 1 / alpha // Constante de tiempo
             };
         }
         
         // Función para formatear números para mostrar
         function formatNumber(num, decimals = 4) {
+            if (isNaN(num)) return "N/A";
             return num.toFixed(decimals).replace(/\.?0+$/, '');
         }
         
@@ -406,6 +792,11 @@
             const minVoltage = Math.min(...voltageData);
             const maxCurrent = Math.max(...currentData);
             const minCurrent = Math.min(...currentData);
+            
+            // Encontrar tiempo de establecimiento (2% del valor final)
+            const finalVoltage = voltageData[voltageData.length - 1];
+            const settlingIndex = voltageData.findIndex(v => Math.abs(v - finalVoltage) <= 0.02 * Math.abs(V0));
+            const settlingTime = settlingIndex !== -1 ? timeData[settlingIndex] : timeData[timeData.length - 1];
             
             // Mostrar parámetros del circuito y características
             paramsContainer.innerHTML = `
@@ -426,7 +817,7 @@
                     <div class="result-value">${formatNumber(params.omega0)} rad/s</div>
                 </div>
                 <div class="result-item">
-                    <div class="result-label">Frecuencia natural (f₀)</div>
+                    <div class="result-label">Frecuencia (f₀)</div>
                     <div class="result-value">${formatNumber(params.frecuenciaNatural)} Hz</div>
                 </div>
                 <div class="result-item">
@@ -438,16 +829,32 @@
                     <div class="result-value">${formatNumber(params.dampingRatio)}</div>
                 </div>
                 <div class="result-item">
+                    <div class="result-label">Constante de tiempo (τ)</div>
+                    <div class="result-value">${formatNumber(params.tau)} s</div>
+                </div>
+                <div class="result-item">
                     <div class="result-label">Tipo de respuesta</div>
                     <div class="result-value">${params.dampingType}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Tiempo de establecimiento</div>
+                    <div class="result-value">${formatNumber(settlingTime)} s</div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Voltaje máximo</div>
                     <div class="result-value">${formatNumber(maxVoltage)} V</div>
                 </div>
                 <div class="result-item">
+                    <div class="result-label">Voltaje mínimo</div>
+                    <div class="result-value">${formatNumber(minVoltage)} V</div>
+                </div>
+                <div class="result-item">
                     <div class="result-label">Corriente máxima</div>
                     <div class="result-value">${formatNumber(maxCurrent)} A</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Corriente mínima</div>
+                    <div class="result-value">${formatNumber(minCurrent)} A</div>
                 </div>
             `;
             
@@ -477,6 +884,229 @@
                 `;
                 tableBody.appendChild(row);
             });
+        }
+        
+        // Función para animar el gráfico
+        function animateChart(timeData, voltageData, currentData, tipo) {
+            // Cancelar animación previa si existe
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            const ctx = document.getElementById('responseChart').getContext('2d');
+            
+            // Destruir el gráfico anterior si existe
+            if (responseChart) {
+                responseChart.destroy();
+            }
+
+            // Configurar escalas automáticas mejoradas
+            const maxVoltage = Math.max(1, ...voltageData.map(Math.abs));
+            const maxCurrent = Math.max(0.1, ...currentData.map(Math.abs));
+
+            // Crear nuevo gráfico sin animación inicial
+            responseChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: `Voltaje en capacitor (V) - ${tipo}`,
+                            data: [],
+                            borderColor: chartColors.voltage.border,
+                            backgroundColor: chartColors.voltage.background,
+                            borderWidth: 3,
+                            tension: 0.1,
+                            yAxisID: 'y',
+                            pointRadius: 0
+                        },
+                        {
+                            label: `Corriente en inductor (A) - ${tipo}`,
+                            data: [],
+                            borderColor: chartColors.current.border,
+                            backgroundColor: chartColors.current.background,
+                            borderWidth: 3,
+                            tension: 0.1,
+                            yAxisID: 'y1',
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0 // Desactivar animaciones internas de Chart.js
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tiempo (s)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: chartColors.grid.color
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Voltaje (V)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: -maxVoltage * 1.1,
+                            max: maxVoltage * 1.1,
+                            grid: {
+                                color: chartColors.grid.color
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Corriente (A)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: -maxCurrent * 1.1,
+                            max: maxCurrent * 1.1,
+                            grid: {
+                                drawOnChartArea: false,
+                                color: chartColors.grid.color
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(4);
+                                        label += context.datasetIndex === 0 ? ' V' : ' A';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Configurar datos para animación
+            animationData = {
+                timeData: timeData,
+                voltageData: voltageData,
+                currentData: currentData,
+                tipo: tipo,
+                totalPoints: timeData.length,
+                currentIndex: 0
+            };
+
+            // Iniciar animación
+            isPaused = false;
+            lastUpdateTime = 0;
+            animationFrameId = requestAnimationFrame(updateAnimation);
+        }
+
+        // Función para actualizar la animación
+        function updateAnimation(timestamp) {
+            if (isPaused) {
+                animationFrameId = requestAnimationFrame(updateAnimation);
+                return;
+            }
+
+            if (!lastUpdateTime) lastUpdateTime = timestamp;
+            const deltaTime = timestamp - lastUpdateTime;
+            
+            // Controlar velocidad con animationSpeed (30ms base)
+            if (deltaTime > 30 / animationSpeed) {
+                lastUpdateTime = timestamp;
+                
+                // Calcular cuántos puntos agregar en este frame
+                const pointsToAdd = Math.max(1, Math.floor(animationData.totalPoints / 100 * animationSpeed));
+                
+                // Actualizar solo los nuevos puntos
+                const startPoint = animationData.currentIndex;
+                const endPoint = Math.min(startPoint + pointsToAdd, animationData.totalPoints - 1);
+                
+                // Agregar nuevos puntos al gráfico
+                for (let i = startPoint; i <= endPoint; i++) {
+                    responseChart.data.labels.push(animationData.timeData[i]);
+                    responseChart.data.datasets[0].data.push(animationData.voltageData[i]);
+                    responseChart.data.datasets[1].data.push(animationData.currentData[i]);
+                }
+                
+                animationData.currentIndex = endPoint;
+                
+                // Actualizar el gráfico sin animación
+                responseChart.update('none');
+                
+                // Continuar la animación si no hemos llegado al final
+                if (endPoint < animationData.totalPoints - 1) {
+                    animationFrameId = requestAnimationFrame(updateAnimation);
+                }
+            } else {
+                animationFrameId = requestAnimationFrame(updateAnimation);
+            }
+        }
+
+        // Función para exportar datos a CSV
+        function exportToCSV(timeData, voltageData, currentData, tipo) {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Tiempo (s),Voltaje (V),Corriente (A)\n";
+            
+            for (let i = 0; i < timeData.length; i++) {
+                csvContent += `${timeData[i]},${voltageData[i]},${currentData[i]}\n`;
+            }
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `datos_rlc_${tipo}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Función para exportar gráfico como imagen
+        function exportChartImage() {
+            if (!responseChart) return;
+            
+            const link = document.createElement('a');
+            link.download = 'grafico_rlc.png';
+            link.href = responseChart.canvas.toDataURL('image/png');
+            link.click();
         }
         
         // Función para calcular la respuesta RLC usando el método de Euler
@@ -521,12 +1151,12 @@
                 currentSimulationData = {
                     timeData, voltageData, currentData, params,
                     circuitParams: { R, L, C, V0, I0 },
-                    simulationParams: { tMax, dt }
+                    simulationParams: { tMax, dt, tipo }
                 };
                 
                 // Mostrar resultados y gráfico
                 mostrarResultados(tipo, R, L, C, V0, I0, params, timeData, voltageData, currentData);
-                mostrarGrafico(timeData, voltageData, currentData, tipo);
+                animateChart(timeData, voltageData, currentData, tipo);
                 
                 showStatus(prefix, `Simulación completada con ${timeData.length} puntos. Tipo: ${params.dampingType}`);
             } catch (error) {
@@ -578,105 +1208,10 @@
             return { timeData, voltageData, currentData };
         }
         
-        // Función para mostrar el gráfico
-        function mostrarGrafico(timeData, voltageData, currentData, tipo) {
-            const ctx = document.getElementById('responseChart').getContext('2d');
-            
-            // Destruir el gráfico anterior si existe
-            if (responseChart) {
-                responseChart.destroy();
-            }
-            
-            // Configurar escalas automáticas mejoradas
-            const maxVoltage = Math.max(1, ...voltageData.map(Math.abs));
-            const maxCurrent = Math.max(0.1, ...currentData.map(Math.abs));
-            
-            responseChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: timeData,
-                    datasets: [
-                        {
-                            label: `Voltaje en capacitor (V) - ${tipo}`,
-                            data: voltageData,
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.1,
-                            yAxisID: 'y',
-                            pointRadius: 0
-                        },
-                        {
-                            label: `Corriente en inductor (A) - ${tipo}`,
-                            data: currentData,
-                            borderColor: 'rgb(255, 99, 132)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.1,
-                            yAxisID: 'y1',
-                            pointRadius: 0
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Tiempo (s)'
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Voltaje (V)'
-                            },
-                            min: -maxVoltage * 1.1,
-                            max: maxVoltage * 1.1
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Corriente (A)'
-                            },
-                            min: -maxCurrent * 1.1,
-                            max: maxCurrent * 1.1,
-                            grid: {
-                                drawOnChartArea: false
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toFixed(4);
-                                        label += context.datasetIndex === 0 ? ' V' : ' A';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        // Función para actualizar el indicador de velocidad
+        function updateSpeedIndicator() {
+            document.getElementById('speed-indicator').textContent = `Velocidad: ${animationSpeed.toFixed(1)}x`;
+            document.getElementById('speed-indicator-paralelo').textContent = `Velocidad: ${animationSpeed.toFixed(1)}x`;
         }
         
         // Inicialización cuando el DOM esté completamente cargado
@@ -688,8 +1223,82 @@
             document.getElementById('btn-serie').addEventListener('click', () => calcularRespuesta('serie'));
             document.getElementById('btn-paralelo').addEventListener('click', () => calcularRespuesta('paralelo'));
             
+            // Controles de animación
+            document.getElementById('animate-slower').addEventListener('click', () => {
+                animationSpeed = Math.max(0.1, animationSpeed / 1.5);
+                updateSpeedIndicator();
+            });
+            
+            document.getElementById('animate-faster').addEventListener('click', () => {
+                animationSpeed = Math.min(5, animationSpeed * 1.5);
+                updateSpeedIndicator();
+            });
+            
+            document.getElementById('animate-slower-paralelo').addEventListener('click', () => {
+                animationSpeed = Math.max(0.1, animationSpeed / 1.5);
+                updateSpeedIndicator();
+            });
+            
+            document.getElementById('animate-faster-paralelo').addEventListener('click', () => {
+                animationSpeed = Math.min(5, animationSpeed * 1.5);
+                updateSpeedIndicator();
+            });
+            
+            // Botones de pausa
+            document.getElementById('pause-btn').addEventListener('click', function() {
+                isPaused = !isPaused;
+                this.innerHTML = isPaused ? 
+                    '<i class="fas fa-play"></i> Reanudar' : 
+                    '<i class="fas fa-pause"></i> Pausar';
+                
+                if (!isPaused) {
+                    lastUpdateTime = 0;
+                    animationFrameId = requestAnimationFrame(updateAnimation);
+                }
+            });
+            
+            document.getElementById('pause-btn-paralelo').addEventListener('click', function() {
+                isPaused = !isPaused;
+                this.innerHTML = isPaused ? 
+                    '<i class="fas fa-play"></i> Reanudar' : 
+                    '<i class="fas fa-pause"></i> Pausar';
+                
+                if (!isPaused) {
+                    lastUpdateTime = 0;
+                    animationFrameId = requestAnimationFrame(updateAnimation);
+                }
+            });
+            
+            // Botones de exportación
+            document.getElementById('export-data-serie').addEventListener('click', () => {
+                if (currentSimulationData) {
+                    exportToCSV(
+                        currentSimulationData.timeData,
+                        currentSimulationData.voltageData,
+                        currentSimulationData.currentData,
+                        currentSimulationData.simulationParams.tipo
+                    );
+                }
+            });
+            
+            document.getElementById('export-image-serie').addEventListener('click', exportChartImage);
+            
+            document.getElementById('export-data-paralelo').addEventListener('click', () => {
+                if (currentSimulationData) {
+                    exportToCSV(
+                        currentSimulationData.timeData,
+                        currentSimulationData.voltageData,
+                        currentSimulationData.currentData,
+                        currentSimulationData.simulationParams.tipo
+                    );
+                }
+            });
+            
+            document.getElementById('export-image-paralelo').addEventListener('click', exportChartImage);
+            
             // Calcular automáticamente al cargar la página
             calcularRespuesta('serie');
+            updateSpeedIndicator();
         });
     </script>
 </body>
