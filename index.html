@@ -41,6 +41,38 @@
             text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
         
+        h5 {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 5vh;
+            margin: 0;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            gap: 30px;
+            font-size: 3rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        .rgb-text {
+            font-size: 3rem;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        #Title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #Names {
+            font-size: 1.5rem;
+            font-style: italic;
+        }
+        
         .header {
             display: flex;
             justify-content: space-between;
@@ -462,6 +494,11 @@
         </div>
     </div>
     
+      <div>
+  <h1 id="Title" class="rgb-text">¡Integrantes del Equipo!</h1>
+  <h5 id="Names" class="rgb-text">Roberto Emmanuel Solano Almendra, Noe Abisai Rodriguez^2, Zidane Kal El Portugal Pimentel </h5>
+     </div>
+  
     <div id="serie-tab" class="tab-content">
         <div class="circuit-container">
             <div class="circuit-params">
@@ -1299,6 +1336,40 @@
             // Calcular automáticamente al cargar la página
             calcularRespuesta('serie');
             updateSpeedIndicator();
+            
+            // Texto RGB
+    const Title = document.getElementById('Title');
+    const Names = document.getElementById('Names');
+
+    // Función para generar colores RGB aleatorios
+    function getRandomColor() {
+      const r = Math.floor(Math.random() * 256);
+      const g = Math.floor(Math.random() * 256);
+      const b = Math.floor(Math.random() * 256);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Efecto para el primer texto (cambio rápido)
+    function changeColor1() {
+      Title.style.color = getRandomColor();
+    }
+
+    // Efecto para el segundo texto (cambio más lento con colores más brillantes)
+    function changeColor2() {
+      // Asegurar colores más brillantes (al menos 100 en cada componente)
+      const r = 100 + Math.floor(Math.random() * 156);
+      const g = 100 + Math.floor(Math.random() * 156);
+      const b = 100 + Math.floor(Math.random() * 156);
+      Names.style.color = `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Configurar intervalos diferentes para cada texto
+    setInterval(changeColor1, 1000); // Cambio rápido cada 300ms
+    setInterval(changeColor2, 500); // Cambio lento cada 1000ms
+
+    // Iniciar con colores aleatorios
+    changeColor1();
+    changeColor2();
         });
     </script>
 </body>
