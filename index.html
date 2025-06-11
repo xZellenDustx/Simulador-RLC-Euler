@@ -343,9 +343,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 2vh;
+            height: 2.5vh;
             margin: 10px;
-            background-color: #f0cd0a;
+            background-color: var(--primary-color);
             color: white;
             font-family: Arial, sans-serif;
             font-size: 1.5rem;
@@ -374,7 +374,7 @@
             <p class="subtitle">Explore el comportamiento de circuitos RLC en serie con diferentes parámetros</p>
         </header>
         
-              <div>
+      <div>
   <h5>¡Integrantes del Equipo!</h5>
   <h6>Tenchipe Navarro Andres, Samano Pastrana Alexandro, Solano Regalado Bryan, Jácome Durán Josep</h6>
      </div>
@@ -492,7 +492,7 @@
                 return;
             }
             
-            // Calcular frecuencia natural para ajustar el paso de tiempo si es necesario
+            // Calcular frecuencia natural para ajustar el paso de tiempo 
             const omega0 = 1 / Math.sqrt(L * C);
             const alpha = R / (2 * L);
             const dampingRatio = alpha / omega0;
@@ -529,7 +529,7 @@
             let I = I0;
             let Vc = Q0 / C; // Voltaje inicial en el capacitor
             
-            // Implementación del método de Euler mejorado
+            // Implementación del método de Euler 
             try {
                 while (t <= simulationTime) {
                     timePoints.push(t);
